@@ -80,15 +80,12 @@ export default class Changelog {
 
   private packageFromPath(path: string): string {
     const parts = path.split("/");
-    if (parts[0] !== "packages" || parts.length < 3) {
+    // sg. In case of changes in root
+    if (parts.length === 1) {
       return "";
     }
 
-    if (parts.length >= 4 && parts[1][0] === "@") {
-      return `${parts[1]}/${parts[2]}`;
-    }
-
-    return parts[1];
+    return parts[0];
   }
 
   private getListOfCommits(from: string, to: string): Git.CommitListItem[] {
