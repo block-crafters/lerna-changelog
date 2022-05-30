@@ -6,6 +6,8 @@ import Changelog from "./changelog";
 import { load as loadConfig } from "./configuration";
 import ConfigurationError from "./configuration-error";
 
+import fs = require("fs");
+
 const NEXT_VERSION_DEFAULT = "Unreleased";
 
 export async function run() {
@@ -48,6 +50,11 @@ export async function run() {
         desc: "`<USER|ORG>/<PROJECT>` of the GitHub project",
         defaultDescription: "inferred from the `package.json` file",
       },
+      output: {
+        type: "string",
+        desc: "output file",
+        default: "",
+      },
     })
     .example(
       "lerna-changelog",
@@ -88,6 +95,15 @@ export async function run() {
     });
 
     console.log(highlighted);
+
+    if (argv["output"] !== "") {
+      fs.writeFile(argv["output"], result, err => {
+        if (err) {
+          console.error(err);
+          process.exitCode = 1;
+        }
+      });
+    }
   } catch (e) {
     if (e instanceof ConfigurationError) {
       console.log(chalk.red(e.message));
