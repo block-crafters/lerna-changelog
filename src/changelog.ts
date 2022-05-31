@@ -157,7 +157,7 @@ export default class Changelog {
 
         progressBar.tick();
       },
-      { concurrency: 5 }
+      { concurrency: 1 }
     );
     progressBar.terminate();
   }
@@ -220,7 +220,7 @@ export default class Changelog {
 
           progressBar.tick();
         },
-        { concurrency: 5 }
+        { concurrency: 1 }
       );
     } finally {
       progressBar.terminate();
