@@ -9,10 +9,17 @@ interface CategoryInfo {
   commits: CommitInfo[];
 }
 
+interface JiraIssueInfo {
+  issueId: string;
+  issueUrl: string | undefined;
+  commits: CommitInfo[];
+}
+
 interface Options {
   categories: string[];
   baseIssueUrl: string;
   unreleasedName: string;
+  jiraBaseUrl: string;
 }
 
 export default class MarkdownRenderer {
@@ -34,6 +41,10 @@ export default class MarkdownRenderer {
     // Group commits in release by category
     const categories = this.groupByCategory(release.commits);
     const categoriesWithCommits = categories.filter(category => category.commits.length > 0);
+    const jiraIssues = this.groupByJiraIssue(release.commits);
+    const jiraIssuesWithCommits = jiraIssues
+      .filter(jiraIssue => jiraIssue.commits.length > 0 && jiraIssue.issueId.length > 0)
+      .sort((a, b) => (a.issueId > b.issueId ? 1 : -1));
 
     // Skip this iteration if there are no commits available for the release
     if (categoriesWithCommits.length === 0) return "";
@@ -41,6 +52,11 @@ export default class MarkdownRenderer {
     const releaseTitle = release.name === UNRELEASED_TAG ? this.options.unreleasedName : release.name;
 
     let markdown = `## ${releaseTitle} (${release.date})`;
+
+    if (jiraIssuesWithCommits.length > 0) {
+      markdown += `\n\n### Tasks\n`;
+      markdown += jiraIssuesWithCommits.map(issue => `* [${issue.issueId}](${issue.issueUrl})`).join("\n");
+    }
 
     for (const category of categoriesWithCommits) {
       markdown += `\n\n#### ${category.name}\n`;
@@ -141,5 +157,33 @@ export default class MarkdownRenderer {
 
       return { name, commits };
     });
+  }
+
+  private groupByJiraIssue(commits: CommitInfo[]): JiraIssueInfo[] {
+    let jiraIssues: { [key: string]: CommitInfo[] } = {};
+    commits.forEach(commit => {
+      const jiraIssueId = this.jiraIssueIdFromTitle(commit.githubIssue?.title ?? "");
+      if (jiraIssues[jiraIssueId]) {
+        jiraIssues[jiraIssueId].push(commit);
+      } else {
+        jiraIssues[jiraIssueId] = [commit];
+      }
+    });
+
+    return Object.keys(jiraIssues).map(jiraIssueId => {
+      return {
+        issueId: jiraIssueId,
+        issueUrl: jiraIssueId.length > 0 ? `${this.options.jiraBaseUrl}${jiraIssueId}` : undefined,
+        commits: jiraIssues[jiraIssueId],
+      };
+    });
+  }
+
+  private jiraIssueIdFromTitle(title: string): string {
+    const parts = title.match(/\[(.+)-(.+)\](.+)/) || [];
+    if (parts && parts.length > 0) {
+      return `${parts[1]}-${parts[2]}`.toUpperCase();
+    }
+    return "";
   }
 }

@@ -27,6 +27,7 @@ export default class Changelog {
       categories: Object.keys(this.config.labels).map(key => this.config.labels[key]),
       baseIssueUrl: this.github.getBaseIssueUrl(this.config.repo),
       unreleasedName: this.config.nextVersion || "Unreleased",
+      jiraBaseUrl: "https://blockcrafters.atlassian.net/browse/",
     });
   }
 
