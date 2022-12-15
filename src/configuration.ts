@@ -14,6 +14,7 @@ export interface Configuration {
   cacheDir?: string;
   nextVersion: string | undefined;
   nextVersionFromMetadata?: boolean;
+  jiraBaseUrl?: string;
 }
 
 export interface ConfigLoaderOptions {
@@ -35,7 +36,7 @@ export function fromPath(rootPath: string, options: ConfigLoaderOptions = {}): C
   }
 
   // Step 2: fill partial config with defaults
-  let { repo, nextVersion, labels, cacheDir, ignoreCommitters } = config;
+  let { repo, nextVersion, labels, cacheDir, ignoreCommitters, jiraBaseUrl } = config;
 
   if (!repo) {
     repo = findRepo(rootPath);
@@ -81,6 +82,7 @@ export function fromPath(rootPath: string, options: ConfigLoaderOptions = {}): C
     labels,
     ignoreCommitters,
     cacheDir,
+    jiraBaseUrl,
   };
 }
 
